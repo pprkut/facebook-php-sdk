@@ -42,13 +42,14 @@ class Facebook extends BaseFacebook
    * accepts "sharedSession" as a boolean to turn on a secondary
    * cookie for environments with a shared session (that is, your app
    * shares the domain with other apps).
+   * @param \Psr\Log\LoggerInterface $logger Instance of a PSR-3 compliant logger class (optional)
    * @see BaseFacebook::__construct in facebook.php
    */
-  public function __construct($config) {
+  public function __construct($config, $logger = NULL) {
     if (!session_id()) {
       session_start();
     }
-    parent::__construct($config);
+    parent::__construct($config, $logger);
     if (!empty($config['sharedSession'])) {
       $this->initSharedSession();
     }

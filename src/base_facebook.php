@@ -213,6 +213,11 @@ abstract class BaseFacebook
   protected $trustForwarded = false;
 
   /**
+   * Instance of a PSR-3 compliant Logger class if given, NULL otherwise.
+   */
+  protected static $logger;
+
+  /**
    * Initialize a Facebook Application.
    *
    * The configuration:
@@ -221,8 +226,9 @@ abstract class BaseFacebook
    * - fileUpload: (optional) boolean indicating if file uploads are enabled
    *
    * @param array $config The application configuration
+   * @param \Psr\Log\LoggerInterface $logger Instance of a PSR-3 compliant logger class (optional)
    */
-  public function __construct($config) {
+  public function __construct($config, $logger = NULL) {
     $this->setAppId($config['appId']);
     $this->setAppSecret($config['secret']);
     if (isset($config['fileUpload'])) {
@@ -234,6 +240,10 @@ abstract class BaseFacebook
     $state = $this->getPersistentData('state');
     if (!empty($state)) {
       $this->state = $state;
+    }
+
+    if (self::$logger === NULL) {
+      self::$logger = $logger;
     }
   }
 
@@ -1296,9 +1306,11 @@ abstract class BaseFacebook
    * @param string $msg Log message
    */
   protected static function errorLog($msg) {
-    // disable error log if we are running in a CLI environment
+    // disable error log if we are running in a CLI environment and don't have a custom logger
     // @codeCoverageIgnoreStart
-    if (php_sapi_name() != 'cli') {
+    if (self::$logger !== NULL) {
+      self::$logger->error($msg);
+    } elseif (php_sapi_name() != 'cli') {
       error_log($msg);
     }
     // uncomment this if you want to see the errors on the page
